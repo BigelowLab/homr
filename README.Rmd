@@ -1,0 +1,50 @@
+---
+title: "homr"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressPackageStartupMessages({
+  library(rnaturalearth)
+  library(rnaturalearthdata)
+  library(homr)
+  library(sf)
+  library(ggplot2)
+  library(dplyr)
+  })
+```
+
+
+An R package for querying and accessing [Historical Observing Metadata Repository](https://www.ncei.noaa.gov/access/homr/api).
+
+Search within a state; it is much faster when `headerOnly = TRUE`.  Note that we include the option to attach (as an attribute) the definitions table. It's not clear how this might be useful, but it is available. By default `include_definitions = FALSE`.
+
+```{r}
+x = query_search(headersOnly = "true", state = "ME", include_definitions = TRUE) |>
+ glimpse()
+```
+
+Above you'll note that `startDate` and `endDate` are both character type.  That's because the are entries like 'present' and 'unknown'.
+
+Below we show the definitions table.
+
+```{r}
+attr(x, 'homr_definitions') |>
+  glimpse()
+```
+
+We can map these...
+
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+ggplot(data = world) +
+  geom_sf() +
+  xlim(-72, -63) +
+  ylim(42, 48) +
+  geom_sf(data = x, aes(alpha = 0.5)) +
+  theme(legend.position = "none") 
+```

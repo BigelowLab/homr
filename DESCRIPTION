@@ -1,0 +1,18 @@
+Package: homr
+Type: Package
+Title: Historical Observing Metadata Repository
+Version: 0.1.0
+Author: Ben Tupper
+Maintainer: Ben Tupper <btupper@bigelow.org>
+URL: https://github.com/BigelowLab/homr
+Description: Querying and accessing NOAA's Historical Observing Metadata Repository.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+  rlang,
+  httr,
+  readr,
+  sf,
+  dplyr
+RoxygenNote: 7.2.3
