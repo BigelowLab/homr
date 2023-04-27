@@ -1,6 +1,16 @@
 homr
 ================
 
+An R package for querying and accessing [Historical Observing Metadata
+Repository](https://www.ncei.noaa.gov/access/homr/api). + [R
+v4.1+](https://www.r-project.org/) +
+[rlang](https://CRAN.R-project.org/package=rlang) +
+[httr](https://CRAN.R-project.org/package=httr) +
+[sf](https://CRAN.R-project.org/package=sf) +
+[dplyr](https://CRAN.R-project.org/package=dplyr)
+
+### Simple usage
+
 ``` r
 suppressPackageStartupMessages({
   library(rnaturalearth)
@@ -12,27 +22,33 @@ suppressPackageStartupMessages({
   })
 ```
 
-An R package for querying and accessing [Historical Observing Metadata
-Repository](https://www.ncei.noaa.gov/access/homr/api).
+Search for sites within a state.
 
-Search within a state; it is much faster when `headerOnly = TRUE`. Note
-that we include the option to attach (as an attribute) the definitions
-table. It’s not clear how this might be useful, but it is available. By
-default `include_definitions = FALSE`.
+##### Tip - speed your searches
+
+It is much faster when you specify `headerOnly = TRUE` (which is the
+default).
+
+##### Tip - optionally retrieve a table of definitions
+
+Note that for demonstration purposes we include the option to attach (as
+an attribute) the definitions table. It’s not clear how this might be
+useful, but it is available. By default `definitions = FALSE` so it is
+not included.
 
 ``` r
-x = query_search(headersOnly = "true", state = "ME", include_definitions = TRUE) |>
+x = query_search(state = "ME", definitions = TRUE) |>
  glimpse()
 ```
 
     ## Rows: 695
     ## Columns: 6
-    ## $ ncdcStnId     <chr> "30041258", "30129451", "30146634", "30071850", "3007409…
-    ## $ preferredName <chr> "SCARBOROUGH 3.0 SSE, ME", "DEDHAM 5.7 ESE, ME", "LIBBY …
-    ## $ precision     <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, "DDMM", "DDMM", "DDM…
-    ## $ beginDate     <chr> "2011-03-01T00:00:00.000", "2021-06-03T00:00:00.000", "1…
-    ## $ endDate       <chr> "2011-06-17T00:00:00.000", "Present", "1983-12-31T00:00:…
-    ## $ geometry      <POINT [°]> POINT (-70.307 43.5587), POINT (-68.54425 44.67663…
+    ## $ ncdcStnId     <chr> "12002245", "20009704", "20009741", "20009757", "2000977…
+    ## $ preferredName <chr> "KENNEBEC ARSENAL, ME", "WEST BUXTON 2 NNW, ME", "NORTH …
+    ## $ precision     <chr> "DDMM", "DDMMSS", "DDMM", "DDMM", "DDMM", "DDddddd", "DD…
+    ## $ beginDate     <chr> "1892-03-01T00:00:00.000", "1953-07-01T00:00:00.000", "1…
+    ## $ endDate       <chr> "1893-05-31T00:00:00.000", "2011-09-01T00:00:00.000", "1…
+    ## $ geometry      <POINT [°]> POINT (-69.7667 44.31667), POINT (-70.6127 43.6877…
 
 Above you’ll note that `startDate` and `endDate` are both character
 type. That’s because the are entries like ‘present’ and ‘unknown’.
@@ -54,16 +70,32 @@ attr(x, 'homr_definitions') |>
     ## $ cssaName    <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
     ## $ ghcndName   <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
 
-We can map these…
+### Searching multiple states
+
+It seems the only geographical filter is by state/province. So to get
+multiple states/provinces you could try iterating. Note the small pause
+for each iteration; if it goes too quickly the server can’t seem to keep
+up.
+
+``` r
+places = c("NS","NB","ME","NH","MA")
+x = lapply(places, function(place) {Sys.sleep(2) ; query_search(state = place)} ) |>
+  dplyr::bind_rows()
+```
+
+We can map these stations…
 
 ``` r
 world <- ne_countries(scale = "medium", returnclass = "sf")
+bb <- sf::st_bbox(x)
 ggplot(data = world) +
   geom_sf() +
-  xlim(-72, -63) +
-  ylim(42, 48) +
+  xlim(bb$xmin, bb$xmax) +
+  ylim(bb$ymin, bb$ymax) +
   geom_sf(data = x, aes(alpha = 0.5)) +
   theme(legend.position = "none") 
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+… well, miscoding of attributes happens!

@@ -7,6 +7,16 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+An R package for querying and accessing [Historical Observing Metadata Repository](https://www.ncei.noaa.gov/access/homr/api).
+  + [R v4.1+](https://www.r-project.org/)
+  + [rlang](https://CRAN.R-project.org/package=rlang)
+  + [httr](https://CRAN.R-project.org/package=httr)
+  + [sf](https://CRAN.R-project.org/package=sf)
+  + [dplyr](https://CRAN.R-project.org/package=dplyr)
+
+
+### Simple usage
+
 ```{r}
 suppressPackageStartupMessages({
   library(rnaturalearth)
@@ -19,12 +29,17 @@ suppressPackageStartupMessages({
 ```
 
 
-An R package for querying and accessing [Historical Observing Metadata Repository](https://www.ncei.noaa.gov/access/homr/api).
+Search for sites within a state. 
 
-Search within a state; it is much faster when `headerOnly = TRUE`.  Note that we include the option to attach (as an attribute) the definitions table. It's not clear how this might be useful, but it is available. By default `include_definitions = FALSE`.
+##### Tip - speed your searches
+It is much faster when you specify `headerOnly = TRUE` (which is the default).
+
+##### Tip - optionally retrieve a table of definitions
+Note that for demonstration purposes we include the option to attach (as an attribute) the definitions table. It's not clear how this might be useful, but it is available. By default `definitions = FALSE` so it is not included. 
+
 
 ```{r}
-x = query_search(headersOnly = "true", state = "ME", include_definitions = TRUE) |>
+x = query_search(state = "ME", definitions = TRUE) |>
  glimpse()
 ```
 
@@ -37,14 +52,28 @@ attr(x, 'homr_definitions') |>
   glimpse()
 ```
 
-We can map these...
+
+### Searching multiple states
+
+It seems the only geographical filter is by state/province. So to get multiple states/provinces you could try iterating.  Note the small pause for each iteration; if it goes too quickly the server can't seem to keep up.
+
+```{r}
+places = c("NS","NB","ME","NH","MA")
+x = lapply(places, function(place) {Sys.sleep(2) ; query_search(state = place)} ) |>
+  dplyr::bind_rows()
+```
+
+We can map these stations...
 
 ```{r}
 world <- ne_countries(scale = "medium", returnclass = "sf")
+bb <- sf::st_bbox(x)
 ggplot(data = world) +
   geom_sf() +
-  xlim(-72, -63) +
-  ylim(42, 48) +
+  xlim(bb$xmin, bb$xmax) +
+  ylim(bb$ymin, bb$ymax) +
   geom_sf(data = x, aes(alpha = 0.5)) +
   theme(legend.position = "none") 
 ```
+
+... well, miscoding of attributes happens!

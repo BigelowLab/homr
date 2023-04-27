@@ -4,13 +4,29 @@
 \alias{query_search}
 \title{Query homr using the search endpoint}
 \usage{
-query_search(..., include_definitions = FALSE, base_uri = api_uri("search"))
+query_search(
+  ...,
+  headersOnly = TRUE,
+  definitions = FALSE,
+  params = NULL,
+  verbose = FALSE,
+  base_uri = api_uri("search")
+)
 }
 \arguments{
 \item{...}{elements of the query to be cast and \code{character} type}
 
-\item{include_definitions}{logical, if TRUE add definitions as an attribute
-of the returned value}
+\item{headersOnly}{logical, if TRUE retrieve just identifying info as well
+as startDate and endDate - this makes the search faster.  Ignored if 
+\code{params} is provided.}
+
+\item{definitions}{logical, if TRUE add definitions as an attribute
+of the returned value. Ignored if \code{params} is provided.}
+
+\item{params}{char or NULL, if provided then a complete set of query
+parameters such as "state=DE&headersOnly=true&defintions=false". If provided
+then \code{...}, \code{headersOnly} and \code{definitions} are ignored.
+@param verbose logical, if TRUE output helpful messages}
 
 \item{base_uri}{char, the base uri}
 }

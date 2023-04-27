@@ -10,9 +10,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
-  rlang,
   httr,
-  readr,
   sf,
   dplyr
 RoxygenNote: 7.2.3

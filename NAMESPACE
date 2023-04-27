@@ -2,4 +2,3 @@
 
 export(api_uri)
 export(query_search)
-importFrom(rlang,.data)
